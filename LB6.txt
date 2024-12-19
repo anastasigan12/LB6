@@ -1,0 +1,112 @@
+# Установка бібліотеки Pillow
+!pip install pillow
+
+# Імпорт бібліотек
+try:
+    from PIL import Image, ImageFilter
+    import matplotlib.pyplot as plt
+except ImportError:
+    print("Бібліотека Pillow не встановлена. Перевірте підтримку зовнішніх бібліотек у вашому компіляторі.")
+    exit()
+
+def process_image_pillow(image_path, save_path):
+    """Обробка зображення з використанням Pillow."""
+    try:
+        # Відкриття зображення
+        img = Image.open(image_path)
+        print(f"Розмір зображення: {img.size}, формат: {img.format}")
+
+        # Поворот на 180 градусів
+        img_rotated = img.rotate(180, expand=True)
+        img_filtered = img_rotated.filter(ImageFilter.EDGE_ENHANCE_MORE)
+
+        # Створення мініатюри
+        thumbnail_size = (100, 100)
+        img_thumbnail = img_filtered.resize(thumbnail_size)
+
+        # Вставка мініатюри в правий верхній кут
+        img.paste(img_thumbnail, (img.size[0] - thumbnail_size[0], 0))
+
+        # Збереження обробленого зображення
+        img.save(save_path)
+        print(f"Зображення збережено: {save_path}")
+
+        # Відображення результату
+        img.show()
+    except FileNotFoundError:
+        print(f"Файл не знайдено: {image_path}. Завантажте зображення у Google Colab.")
+    except Exception as e:
+        print(f"Помилка обробки зображення: {e}")
+
+
+from google.colab import files
+print("Будь ласка, завантажте зображення:")
+uploaded = files.upload()  # Відкриває діалогове вікно для завантаження файлу
+
+# Отримання шляху до завантаженого файлу
+for file_name in uploaded.keys():
+    image_path = file_name
+
+# Вказання шляху для збереження результату
+save_path = "результат.jpg"
+
+# Обробка зображення
+process_image_pillow(image_path, save_path)
+
+# Відображення обробленого зображення
+try:
+    img = Image.open(save_path)
+    plt.imshow(img)
+    plt.axis('off')  # Прибираємо осі
+    plt.show()
+except Exception as e:
+    print(f"Помилка відображення зображення: {e}")
+
+# Імпорт бібліотек
+import cv2
+import matplotlib.pyplot as plt
+from google.colab import files
+
+def process_image_opencv():
+    """Обробка зображення з використанням OpenCV."""
+    try:
+        # Завантаження зображення вручну
+        print("Будь ласка, завантажте зображення:")
+        uploaded = files.upload()
+        if not uploaded:
+            print("Файл не завантажено.")
+            return
+
+        # Отримання імені файлу
+        file_path = list(uploaded.keys())[0]
+
+        # Читання зображення
+        img = cv2.imread(file_path)
+        if img is None:
+            print("Помилка: Неможливо завантажити зображення.")
+            return
+
+        # Виведення інформації про розмір зображення
+        print(f"Розмір зображення: {img.shape[1]}x{img.shape[0]}")
+
+        # Обробка: Зміна розміру, переворот і фільтрація
+        resized_img = cv2.resize(img, (300, 300))
+        flipped_img = cv2.flip(resized_img, 1)  # Відобразити зображення горизонтально
+        gray_img = cv2.cvtColor(flipped_img, cv2.COLOR_BGR2GRAY)  # Перетворення у відтінки сірого
+
+        # Збереження обробленого зображення
+        processed_img_path = "processed_image.jpg"
+        cv2.imwrite(processed_img_path, gray_img)
+        print(f"Оброблене зображення збережено: {processed_img_path}")
+
+        # Відображення зображення за допомогою Matplotlib
+        plt.imshow(gray_img, cmap='gray')
+        plt.axis('off')  # Прибираємо осі
+        plt.title("Оброблене зображення")
+        plt.show()
+
+    except Exception as e:
+        print(f"Помилка обробки зображення: {e}")
+
+# Запуск обробки
+process_image_opencv()
